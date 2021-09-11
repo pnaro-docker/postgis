@@ -27,7 +27,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
 
       - name: build the image
-      run: |
-        docker buildx build --tag pnaro/postgis:tagname:13-3.1 --push \
-        --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x 13-3.1/alpine/  
+        run: |
+          docker buildx build --tag pnaro/postgis:tagname:13-3.1 --push \
+          --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x \
+          13-3.1/alpine/  
 
