@@ -12,7 +12,6 @@ ENV POSTGIS2_GEOS_VERSION tags/3.8.2
 
 RUN set -eux
 RUN apk add --no-cache --virtual .fetch-deps ca-certificates openssl tar
-RUN wget -O postgis.tar.gz "https://github.com/postgis/postgis/archive/$POSTGIS_VERSION.tar.gz" 
 
 COPY ./postgis-3.1.4.tar.gz postgis.tar.gz
 
