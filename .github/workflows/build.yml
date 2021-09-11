@@ -5,7 +5,7 @@ on:
       - 'master'
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: checkout code
         uses: actions/checkout@v2
@@ -28,7 +28,7 @@ jobs:
 
       - name: build the image
         run: |
-          docker buildx build --tag pnaro/postgis:13-3.1 --push \
-          --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x \
+          docker buildx build --tag pnaro/postgis:13-3.1 --push --platform \
+          linux/amd64,linux/arm64,linux/riscv64,linux/ppc64le,linux/s390x,linux/386,linux/mips64le,linux/mips64,linux/arm/v7,linux/arm/v6 \
           13-3.1/alpine/  
 
