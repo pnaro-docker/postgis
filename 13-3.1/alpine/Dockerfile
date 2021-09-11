@@ -12,23 +12,24 @@ ENV POSTGIS2_GEOS_VERSION tags/3.8.2
 
 COPY ./postgis-3.1.4.tar.gz postgis.tar.gz
 
-RUN set -eux \
-    \
-    && apk add --no-cache --virtual .fetch-deps \
+RUN set -eux
+
+RUN apk add --no-cache --virtual .fetch-deps \
         ca-certificates \
         openssl \
-        tar \
-    \
-    && echo "$POSTGIS_SHA256 *postgis.tar.gz" | sha256sum -c - \
-    && mkdir -p /usr/src/postgis \
-    && tar \
+        tar
+
+#RUN wget -O postgis.tar.gz "https://github.com/postgis/postgis/archive/$POSTGIS_VERSION.tar.gz"
+RUN echo "$POSTGIS_SHA256 *postgis.tar.gz" | sha256sum -c -
+RUN mkdir -p /usr/src/postgis
+RUN tar \
         --extract \
         --file postgis.tar.gz \
         --directory /usr/src/postgis \
-        --strip-components 1 \
-    && rm postgis.tar.gz \
-    \
-    && apk add --no-cache --virtual .build-deps \
+        --strip-components 1
+RUN rm postgis.tar.gz
+
+RUN apk add --no-cache --virtual .build-deps \
         autoconf \
         automake \
         clang-dev \
@@ -45,51 +46,28 @@ RUN set -eux \
         pcre-dev \
         perl \
         proj-dev \
-        protobuf-c-dev \
-     \
-# GEOS setup
-     && if   [ $(printf %.1s "$POSTGIS_VERSION") == 3 ]; then \
-            apk add --no-cache --virtual .build-deps-geos geos-dev cunit-dev ; \
-        elif [ $(printf %.1s "$POSTGIS_VERSION") == 2 ]; then \
-            apk add --no-cache --virtual .build-deps-geos cmake git ; \
-            cd /usr/src ; \
-            git clone https://github.com/libgeos/geos.git ; \
-            cd geos ; \
-            git checkout ${POSTGIS2_GEOS_VERSION} -b geos_build ; \
-            mkdir cmake-build ; \
-            cd cmake-build ; \
-                cmake -DCMAKE_BUILD_TYPE=Release .. ; \
-                make -j$(nproc) ; \
-                make check ; \
-                make install ; \
-            cd / ; \
-            rm -fr /usr/src/geos ; \
-        else \
-            echo ".... unknown PosGIS ...." ; \
-        fi \
-    \
-# build PostGIS
-    \
-    && cd /usr/src/postgis \
-    && gettextize \
-    && ./autogen.sh \
-    && ./configure \
-        --with-pcredir="$(pcre-config --prefix)" \
-    && make -j$(nproc) \
-    && make install \
+        protobuf-c-dev
 
+# GEOS setup
+RUN apk add --no-cache --virtual .build-deps-geos geos-dev cunit-dev
+# build PostGIS
+
+WORKDIR /usr/src/postgis
+RUN gettextize
+RUN ./autogen.sh
+RUN ./configure --with-pcredir="$(pcre-config --prefix)"
+RUN make -j$(nproc)
+RUN make install
 # regress check
-RUN mkdir /tempdb \
-    && chown -R postgres:postgres /tempdb \
-    && su postgres -c 'pg_ctl -D /tempdb init' \
-    && su postgres -c 'pg_ctl -D /tempdb start' \
-    && cd regress \
+RUN mkdir /tempdb
+RUN chown -R postgres:postgres /tempdb
+RUN su postgres -c 'pg_ctl -D /tempdb init'
+RUN su postgres -c 'pg_ctl -D /tempdb start' \
+    && cd /usr/src/postgis/regress \
     && make -j$(nproc) check RUNTESTFLAGS=--extension   PGUSER=postgres \
-    #&& make -j$(nproc) check RUNTESTFLAGS=--dumprestore PGUSER=postgres \
-    #&& make garden                                      PGUSER=postgres \
-    && su postgres -c 'pg_ctl -D /tempdb --mode=immediate stop' \
-    && rm -rf /tempdb \
-    && rm -rf /tmp/pgis_reg
+    && su postgres -c 'pg_ctl -D /tempdb --mode=immediate stop'
+RUN rm -rf /tempdb
+RUN rm -rf /tmp/pgis_reg
 # add .postgis-rundeps
 RUN apk add --no-cache --virtual .postgis-rundeps \
         gdal \
@@ -97,15 +75,14 @@ RUN apk add --no-cache --virtual .postgis-rundeps \
         libstdc++ \
         pcre \
         proj \
-        protobuf-c \
-     # Geos setup
-     && if [ $(printf %.1s "$POSTGIS_VERSION") == 3 ]; then \
-            apk add --no-cache --virtual .postgis-rundeps-geos geos ; \
-        fi
+        protobuf-c
+# Geos setup
+RUN apk add --no-cache --virtual .postgis-rundeps-geos geos
 # clean
-RUN cd / \
-    && rm -rf /usr/src/postgis \
-    && apk del .fetch-deps .build-deps .build-deps-geos
+
+WORKDIR /
+RUN rm -rf /usr/src/postgis
+RUN apk del .fetch-deps .build-deps .build-deps-geos
 
 COPY ./initdb-postgis.sh /docker-entrypoint-initdb.d/10_postgis.sh
 COPY ./update-postgis.sh /usr/local/bin
