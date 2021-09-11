@@ -10,24 +10,19 @@ ENV POSTGIS_SHA256 dfcbad0c6090c80bc59d3ea77d1adc4b3ade533a403761b4af6d9a44be1a6
 #   reason:  PostGIS 2.5.5 is not working with GEOS 3.9.*
 ENV POSTGIS2_GEOS_VERSION tags/3.8.2
 
-RUN set -eux \
-    \
-    && apk add --no-cache --virtual .fetch-deps \
-        ca-certificates \
-        openssl \
-        tar \
-    \
-    && wget -O postgis.tar.gz "https://github.com/postgis/postgis/archive/$POSTGIS_VERSION.tar.gz" \
-    && echo "$POSTGIS_SHA256 *postgis.tar.gz" | sha256sum -c - \
-    && mkdir -p /usr/src/postgis \
-    && tar \
+RUN set -eux
+RUN apk add --no-cache --virtual .fetch-deps ca-certificates openssl tar
+RUN wget -O postgis.tar.gz "https://github.com/postgis/postgis/archive/$POSTGIS_VERSION.tar.gz" 
+RUN echo "$POSTGIS_SHA256 *postgis.tar.gz" | sha256sum -c - 
+RUN mkdir -p /usr/src/postgis 
+RUN tar \
         --extract \
         --file postgis.tar.gz \
         --directory /usr/src/postgis \
-        --strip-components 1 \
-    && rm postgis.tar.gz \
-    \
-    && apk add --no-cache --virtual .build-deps \
+        --strip-components 1 
+RUN rm postgis.tar.gz \
+    
+RUN apk add --no-cache --virtual .build-deps \
         autoconf \
         automake \
         clang-dev \
@@ -45,9 +40,9 @@ RUN set -eux \
         perl \
         proj-dev \
         protobuf-c-dev \
-     \
+        
 # GEOS setup
-     && if   [ $(printf %.1s "$POSTGIS_VERSION") == 3 ]; then \
+RUN if   [ $(printf %.1s "$POSTGIS_VERSION") == 3 ]; then \
             apk add --no-cache --virtual .build-deps-geos geos-dev cunit-dev ; \
         elif [ $(printf %.1s "$POSTGIS_VERSION") == 2 ]; then \
             apk add --no-cache --virtual .build-deps-geos cmake git ; \
