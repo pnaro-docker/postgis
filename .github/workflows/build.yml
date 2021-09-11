@@ -24,7 +24,7 @@ jobs:
 
       - name: build the image
         run: |
-          docker buildx build --tag pnaro/postgis:13-3.1 --push --platform \
+          docker buildx build --tag pnaro/postgis:13-3.1-alpine --push --platform \
           linux/amd64,linux/arm64 \
           13-3.1/alpine/  
 

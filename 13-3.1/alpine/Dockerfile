@@ -59,15 +59,15 @@ RUN ./configure --with-pcredir="$(pcre-config --prefix)"
 RUN make -j$(nproc)
 RUN make install
 # regress check
-RUN mkdir /tempdb
-RUN chown -R postgres:postgres /tempdb
-RUN su postgres -c 'pg_ctl -D /tempdb init'
-RUN su postgres -c 'pg_ctl -D /tempdb start' \
-    && cd /usr/src/postgis/regress \
-    && make -j$(nproc) check RUNTESTFLAGS=--extension   PGUSER=postgres \
-    && su postgres -c 'pg_ctl -D /tempdb --mode=immediate stop'
-RUN rm -rf /tempdb
-RUN rm -rf /tmp/pgis_reg
+#RUN mkdir /tempdb
+#RUN chown -R postgres:postgres /tempdb
+#RUN su postgres -c 'pg_ctl -D /tempdb init'
+#RUN su postgres -c 'pg_ctl -D /tempdb start' \
+#    && cd /usr/src/postgis/regress \
+#    && make -j$(nproc) check RUNTESTFLAGS=--extension   PGUSER=postgres \
+#    && su postgres -c 'pg_ctl -D /tempdb --mode=immediate stop'
+#RUN rm -rf /tempdb
+#RUN rm -rf /tmp/pgis_reg
 # add .postgis-rundeps
 RUN apk add --no-cache --virtual .postgis-rundeps \
         gdal \
