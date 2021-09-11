@@ -77,9 +77,9 @@ RUN set -eux \
         --with-pcredir="$(pcre-config --prefix)" \
     && make -j$(nproc) \
     && make install \
-    \
+
 # regress check
-    && mkdir /tempdb \
+RUN mkdir /tempdb \
     && chown -R postgres:postgres /tempdb \
     && su postgres -c 'pg_ctl -D /tempdb init' \
     && su postgres -c 'pg_ctl -D /tempdb start' \
@@ -89,9 +89,9 @@ RUN set -eux \
     #&& make garden                                      PGUSER=postgres \
     && su postgres -c 'pg_ctl -D /tempdb --mode=immediate stop' \
     && rm -rf /tempdb \
-    && rm -rf /tmp/pgis_reg \
+    && rm -rf /tmp/pgis_reg
 # add .postgis-rundeps
-    && apk add --no-cache --virtual .postgis-rundeps \
+RUN apk add --no-cache --virtual .postgis-rundeps \
         gdal \
         json-c \
         libstdc++ \
@@ -101,9 +101,9 @@ RUN set -eux \
      # Geos setup
      && if [ $(printf %.1s "$POSTGIS_VERSION") == 3 ]; then \
             apk add --no-cache --virtual .postgis-rundeps-geos geos ; \
-        fi \
+        fi
 # clean
-    && cd / \
+RUN cd / \
     && rm -rf /usr/src/postgis \
     && apk del .fetch-deps .build-deps .build-deps-geos
 
